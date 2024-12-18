@@ -67,6 +67,12 @@ const TradeForm = () => {
     }
 
     fetchStocksData(); // 주식 데이터 로드
+
+    // 주식 가격을 10초마다 자동으로 갱신 (예시: 주식 가격 업데이트)
+    const intervalId = setInterval(fetchStocksData, 10000); // 10초마다 호출
+
+    // 컴포넌트가 unmount될 때 interval을 정리
+    return () => clearInterval(intervalId);
   }, []);
 
   useEffect(() => {

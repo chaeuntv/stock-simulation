@@ -8,12 +8,20 @@ const StockGraph = () => {
   const [stocks, setStocks] = useState([]);
   const [selectedStock, setSelectedStock] = useState('AAPL'); // 기본적으로 AAPL을 선택
 
-  // JSON 데이터를 가져오는 useEffect
-  useEffect(() => {
+  // JSON 데이터를 가져오는 함수
+  const fetchStockData = () => {
     fetch('/stocks.json')
       .then(response => response.json())
       .then(data => setStocks(data)) // 데이터 불러와서 상태에 저장
       .catch(error => console.error("Error loading stock data:", error));
+  };
+
+  // 처음 로드 시 데이터를 가져오고, 10초마다 데이터를 갱신
+  useEffect(() => {
+    fetchStockData(); // 처음 데이터 가져오기
+    const intervalId = setInterval(fetchStockData, 10000); // 10초마다 데이터 갱신
+
+    return () => clearInterval(intervalId); // 컴포넌트가 언마운트되면 인터벌을 클리어
   }, []);
 
   // 주식 심볼을 고유하게 추출
