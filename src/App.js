@@ -62,8 +62,8 @@ function App() {
                 user ? (
                   <>
                     <Dashboard user={user} />
-                    <StockGraph stocks={stocks} />
                     <TradeForm />
+                    <StockGraph stocks={stocks} />
                   </>
                 ) : (
                   <Login />
