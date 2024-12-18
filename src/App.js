@@ -32,6 +32,7 @@ function App() {
   }, []); // 빈 배열로 두면 처음 렌더링할 때만 실행됨
 
   // 주식 데이터 로딩 (예시로 하드코딩된 데이터 사용)
+
  useEffect(() => {
   const fetchStockData = async () => {
     try {
@@ -45,7 +46,6 @@ function App() {
 
   fetchStockData();
 }, []);
-
 
   return (
     <Router>

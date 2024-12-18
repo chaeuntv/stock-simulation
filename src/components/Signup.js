@@ -29,6 +29,11 @@ const Signup = () => {
                 uid: user.uid,
                 email: email,
                 username: username,
+                assets: [
+                    { stockName: 'Apple', quantity: 0, price: 0 },  // 기본 자산 정보 추가
+                    { stockName: 'Tesla', quantity: 0, price: 0 }
+                ], 
+                cash: 100000,
             })
             alert('회원가입 성공! 로그인해주세요.');
             navigate('/Login');
