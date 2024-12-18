@@ -35,8 +35,8 @@ function App() {
   useEffect(() => {
     setStocks([
       { time: "2024-12-17 10:00", symbol: "AAPL", price: 150 },
-      { time: "2024-12-17 10:01", symbol: "ccccPL", price: 152 },
-      { time: "2024-12-17 10:02", symbol: "BaaaB", price: 153 },
+      { time: "2024-12-17 10:01", symbol: "AAPL", price: 152 },
+      { time: "2024-12-17 10:02", symbol: "가나다라", price: 153 },
     ]);
   }, []);
 
