@@ -1,10 +1,10 @@
 [
-  { "time": "2024-12-18 11:39", "symbol": "AAPL", "price": 150.25 },
-  { "time": "2024-12-18 11:40", "symbol": "AAPL", "price": 150.30 },
-  { "time": "2024-12-18 11:41", "symbol": "AAPL", "price": 150.35 },
-  { "time": "2024-12-18 11:42", "symbol": "AAPL", "price": 150.40 },
-  { "time": "2024-12-18 11:43", "symbol": "AAPL", "price": 150.45 },
-  { "time": "2024-12-18 11:44", "symbol": "AAPL", "price": 150.50 },
+  { "time": "2024-12-18 11:39", "symbol": "AAPL", "price": 1.25 },
+  { "time": "2024-12-18 11:40", "symbol": "AAPL", "price": 1.30 },
+  { "time": "2024-12-18 11:41", "symbol": "AAPL", "price": 1.35 },
+  { "time": "2024-12-18 11:42", "symbol": "AAPL", "price": 1.40 },
+  { "time": "2024-12-18 11:43", "symbol": "AAPL", "price": 1.45 },
+  { "time": "2024-12-18 11:44", "symbol": "AAPL", "price": 10000.50 },
   
   { "time": "2024-12-18 11:39", "symbol": "GOOG", "price": 2750.20 },
   { "time": "2024-12-18 11:40", "symbol": "GOOG", "price": 2750.50 },

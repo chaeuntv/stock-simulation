@@ -8,7 +8,6 @@ const fetchUserData = async (uid) => {
   try {
     const q = query(collection(db, "users"), where("uid", "==", uid));
     const querySnapshot = await getDocs(q);
-    
 
     if (!querySnapshot.empty) {
       const userDoc = querySnapshot.docs[0]; // 첫 번째 일치하는 문서
@@ -37,6 +36,17 @@ const fetchStockPrices = async () => {
   }
 };
 
+// 주식의 최신 가격을 찾는 함수
+const getLatestPrice = (stockSymbol, stockData) => {
+  const filteredData = stockData.filter(stock => stock.symbol === stockSymbol);
+  if (filteredData.length > 0) {
+    // 시간을 기준으로 내림차순으로 정렬하여 가장 최근의 가격을 가져옵니다
+    const sortedData = filteredData.sort((a, b) => new Date(b.time) - new Date(a.time));
+    return sortedData[0].price; // 가장 최근의 가격을 반환
+  }
+  return 0; // 주식이 없으면 0 반환
+};
+
 const Dashboard = () => {
   const [userData, setUserData] = useState(null); // 유저 데이터 상태
   const [stockData, setStockData] = useState([]); // 주식 데이터 상태
@@ -44,6 +54,7 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true); // 로딩 상태
   const navigate = useNavigate();
 
+  // 유저 데이터와 주식 데이터를 가져오는 useEffect
   useEffect(() => {
     const user = auth.currentUser;
 
@@ -61,19 +72,19 @@ const Dashboard = () => {
       console.error("No user is currently logged in.");
       setLoading(false);
     }
-  }, []);
+  }, []); // 초기 로드 시 한 번만 실행
 
   // 총 자산 계산
   useEffect(() => {
     if (userData && stockData.length > 0) {
       let total = 0;
 
-      // userData.assets에 있는 주식과 stockData에서 가격을 찾아 곱해 총 자산 계산
+      // userData.assets에 있는 주식과 stockData에서 최신 가격을 찾아 곱해 총 자산 계산
       userData.assets.forEach((asset) => {
-        const stock = stockData.find((stock) => stock.symbol === asset.stockName);
+        const latestPrice = getLatestPrice(asset.stockName, stockData); // 최신 가격을 가져옵니다
 
-        if (stock) {
-          total += asset.quantity * stock.price; // 자산 계산
+        if (latestPrice) {
+          total += asset.quantity * latestPrice; // 자산 계산
         }
       });
 
@@ -81,12 +92,14 @@ const Dashboard = () => {
     }
   }, [userData, stockData]);
 
+  // 로딩 중일 때
   if (loading) {
-    return <p>Loading...</p>; // 로딩 중 표시
+    return <p>Loading...</p>;
   }
 
+  // 유저 데이터가 없을 때
   if (!userData) {
-    return <p>User not found!</p>; // 데이터가 없을 때 표시
+    return <p>User not found!</p>;
   }
 
   return (
@@ -98,7 +111,7 @@ const Dashboard = () => {
         <ul>
           {userData.assets.map((asset, index) => (
             <li key={index}>
-              {asset.stockName}: {asset.quantity} shares at ${asset.price} each
+              {asset.stockName}: {asset.quantity} shares at ${getLatestPrice(asset.stockName, stockData)} each
             </li>
           ))}
         </ul>
@@ -106,7 +119,7 @@ const Dashboard = () => {
         <p>No assets available</p>
       )}
       <h2>Total Assets: ${totalAssets.toFixed(2)}</h2> {/* 총 자산 표시 */}
-      <button onClick={() => navigate('/ranking')}>View Ranking</button>
+      <button onClick={() => navigate('/ranking')}>View Ranking</button> {/* 랭킹 페이지로 이동 */}
     </div>
   );
 };
