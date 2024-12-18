@@ -11,7 +11,7 @@ const Navbar = ({ user }) => {
             <li><Link to="/signup">Sign Up</Link></li>
           </>
         ) : (
-          <li>안녕 재호야 {user.name}</li>
+          <li>Ism배 모의주식투자대회{user.name}</li>
         )}
       </ul>
     </nav>

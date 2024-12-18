@@ -1,25 +1,19 @@
 import { useState, useEffect } from "react";
 import { auth, db } from "../firebase";
-import { collection, query, where, getDocs, doc, updateDoc } from "firebase/firestore";
+import { collection, getDocs } from "firebase/firestore";
 import { useNavigate } from "react-router-dom"; // react-router-dom 추가
 
-// Firebase에서 유저 데이터를 가져오는 함수
-const fetchUserData = async (uid) => {
+// Firebase에서 모든 유저 데이터를 가져오는 함수
+const fetchAllUsers = async () => {
   try {
-    const q = query(collection(db, "users"), where("uid", "==", uid));
-    const querySnapshot = await getDocs(q);
-
-    if (!querySnapshot.empty) {
-      const userDoc = querySnapshot.docs[0];
-      const userData = userDoc.data();
-      return { id: querySnapshot.docs[0].id, ...userData }; // 유저 문서 ID와 데이터를 반환
-    } else {
-      console.error("No matching user found!");
-      return null;
-    }
+    const querySnapshot = await getDocs(collection(db, "users"));
+    return querySnapshot.docs.map((doc) => ({
+      id: doc.id,
+      ...doc.data(),
+    }));
   } catch (error) {
-    console.error("Error fetching user data:", error);
-    return null;
+    console.error("Error fetching all users:", error);
+    return [];
   }
 };
 
@@ -28,87 +22,85 @@ const getLatestPrice = (stockSymbol, stocks) => {
   const now = new Date();
   const formattedNow = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')} ${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
 
-  // 주어진 주식의 가격 데이터 중, 현재 시간보다 이전의 가장 최신 데이터 찾기
-  const filteredStocks = stocks.filter(stock => stock.symbol === stockSymbol && stock.time <= formattedNow);
-
+  const filteredStocks = stocks.filter((stock) => stock.symbol === stockSymbol && stock.time <= formattedNow);
   if (filteredStocks.length === 0) return null;
 
-  // 가장 최신의 데이터를 찾기
-  const latestStock = filteredStocks.reduce((latest, current) => {
-    return new Date(current.time) > new Date(latest.time) ? current : latest;
-  });
+  const latestStock = filteredStocks.reduce((latest, current) =>
+    new Date(current.time) > new Date(latest.time) ? current : latest
+  );
 
   return latestStock ? latestStock.price : null;
 };
 
-// Firebase에 총 자산 업데이트 함수
-const updateTotalAssets = async (userId, totalAssets) => {
-  try {
-    const userRef = doc(db, "users", userId); // 해당 유저의 문서를 가져옵니다
-    await updateDoc(userRef, {
-      totalAssets: totalAssets, // 총 자산을 업데이트
-    });
-    console.log("Total assets updated successfully.");
-  } catch (error) {
-    console.error("Error updating total assets:", error);
-  }
-};
-
 const Dashboard = () => {
-  const [userData, setUserData] = useState(null); // 유저 데이터 상태
-  const [loading, setLoading] = useState(true); // 로딩 상태
-  const [stocks, setStocks] = useState([]); // 주식 데이터 상태
-  const [totalAssets, setTotalAssets] = useState(0); // 총 자산 상태
-  const navigate = useNavigate(); // 페이지 이동을 위한 navigate 훅
+  const [userData, setUserData] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [stocks, setStocks] = useState([]);
+  const [totalAssets, setTotalAssets] = useState(0);
+  const [userRank, setUserRank] = useState(null); // 사용자의 순위를 저장
+  const navigate = useNavigate();
 
   useEffect(() => {
-    const user = auth.currentUser;
+    const fetchUserData = async () => {
+      const user = auth.currentUser;
 
-    if (user) {
-      fetchUserData(user.uid).then((fetchedData) => {
-        setUserData(fetchedData);
-        setLoading(false);
-      });
-    } else {
-      console.error("No user is currently logged in.");
+      if (user) {
+        const users = await fetchAllUsers(); // 모든 유저 데이터를 가져오기
+        const currentUser = users.find((u) => u.uid === user.uid); // 현재 로그인된 유저 찾기
+
+        if (currentUser) {
+          setUserData(currentUser);
+
+          // 총 자산이 계산된 순위 정렬
+          const rankedUsers = users
+            .map((u) => ({ ...u, totalAssets: u.totalAssets || 0 })) // totalAssets가 없으면 0으로 설정
+            .sort((a, b) => b.totalAssets - a.totalAssets);
+
+          // 현재 유저의 순위를 찾아 설정
+          const rank = rankedUsers.findIndex((u) => u.uid === user.uid) + 1;
+          setUserRank(rank);
+        } else {
+          console.error("No matching user found!");
+        }
+      } else {
+        console.error("No user is currently logged in.");
+      }
+
       setLoading(false);
-    }
+    };
 
-    // stock.json 데이터를 가져오는 함수
     const fetchStocks = async () => {
       try {
-        const response = await fetch('/stocks.json');
+        const response = await fetch("/stocks.json");
         const data = await response.json();
         setStocks(data);
       } catch (err) {
-        console.error('Error fetching stock data:', err);
+        console.error("Error fetching stock data:", err);
       }
     };
 
-    // stock.json 파일을 가져오는 함수 호출
+    fetchUserData();
     fetchStocks();
   }, []);
 
   useEffect(() => {
-    // userData와 stocks가 둘 다 로딩이 끝나면 총 자산 계산
     if (userData && stocks.length > 0) {
       let total = 0;
 
       // userData.assets에 있는 주식과 stocks에서 최신 가격을 찾아 곱해 총 자산 계산
       userData.assets.forEach((asset) => {
-        const latestPrice = getLatestPrice(asset.stockName, stocks); // 최신 가격을 가져옵니다
-
+        const latestPrice = getLatestPrice(asset.stockName, stocks);
         if (latestPrice !== null) {
-          total += asset.quantity * latestPrice; // 자산 계산
+          total += asset.quantity * latestPrice;
         }
       });
 
-      setTotalAssets(total); // 총 자산 상태 업데이트
+      // 현금을 총 자산에 추가
+      total += userData.cash || 0; // 현금이 없다면 0으로 처리
 
-      // 총 자산을 Firestore에 업데이트
-      updateTotalAssets(userData.id, total); // 유저의 ID와 함께 총 자산을 Firestore에 업데이트
+      setTotalAssets(total); // 총 자산 상태 업데이트
     }
-  }, [userData, stocks]); // userData나 stocks가 변경될 때마다 총 자산을 재계산
+  }, [userData, stocks]);
 
   if (loading) {
     return <p>Loading...</p>;
@@ -118,20 +110,12 @@ const Dashboard = () => {
     return <p>User not found!</p>;
   }
 
-  // 자산의 각 주식에 대해 최신 가격을 찾아 업데이트하는 과정
-  const updatedAssets = userData.assets.map((asset) => {
-    const latestPrice = getLatestPrice(asset.stockName, stocks);
-    return {
-      ...asset,
-      price: latestPrice !== null ? latestPrice : asset.price, // 최신 가격을 찾으면 업데이트, 없으면 기존 가격 유지
-    };
-  });
-
   return (
     <div>
-      <h1>Welcome, {userData.username}!</h1>
-      <h2>Total Assets: ${totalAssets.toFixed(2)}</h2> {/* 총 자산 표시 */}
-      <button onClick={() => navigate("/ranking")}>View Rankings</button> {/* 순위 페이지로 이동하는 버튼 */}
+      <h1>환영합니다!, {userData.username}!</h1>
+      <h2>총 자산: ${totalAssets.toFixed(2)}</h2>
+      {userRank && <h3>당신의 순위: #{userRank}</h3>} {/* 사용자의 순위를 표시 */}
+      <button onClick={() => navigate("/ranking")}>순위 보기</button>
     </div>
   );
 };
