@@ -36,7 +36,7 @@ function App() {
     setStocks([
       { time: "2024-12-17 10:00", symbol: "AAPL", price: 150 },
       { time: "2024-12-17 10:01", symbol: "AAPL", price: 152 },
-      { time: "2024-12-17 10:02", symbol: "BBBB", price: 153 },
+      { time: "2024-12-17 10:02", symbol: "BccB", price: 153 },
     ]);
   }, []);
 
