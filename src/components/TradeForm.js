@@ -5,11 +5,11 @@ import { getFirestore, query, collection, where, getDocs, doc, updateDoc } from 
 const TradeForm = () => {
   const [userData, setUserData] = useState(null);
   const [uid, setUid] = useState(null);
-  const [selectedStock, setSelectedStock] = useState(null); // 라디오 버튼으로 선택된 주식
+  const [selectedStock, setSelectedStock] = useState(null);
   const [quantity, setQuantity] = useState(0);
-  const [stocks, setStocks] = useState([]); // 주식 데이터
+  const [stocks, setStocks] = useState([]);
   const [error, setError] = useState('');
-  const [tradeType, setTradeType] = useState('buy'); // "buy" 또는 "sell"
+  const [tradeType, setTradeType] = useState('buy');
   const db = getFirestore();
 
   const fetchUserData = async (uid) => {
@@ -35,9 +35,8 @@ const TradeForm = () => {
     try {
       const response = await fetch('/stocks.json');
       const data = await response.json();
-      const currentTime = new Date(); // 현재 시각
+      const currentTime = new Date();
 
-      // 현재 시각 이전의 데이터 중 최신 가격 가져오기
       const latestStocks = {};
       data.forEach((entry) => {
         const entryTime = new Date(entry.time);
@@ -66,12 +65,10 @@ const TradeForm = () => {
       setError('사용자 인증에 문제가 발생했습니다.');
     }
 
-    fetchStocksData(); // 주식 데이터 로드
+    fetchStocksData(); 
 
-    // 주식 가격을 10초마다 자동으로 갱신 (예시: 주식 가격 업데이트)
     const intervalId = setInterval(fetchStocksData, 10000); // 10초마다 호출
 
-    // 컴포넌트가 unmount될 때 interval을 정리
     return () => clearInterval(intervalId);
   }, []);
 
@@ -99,7 +96,6 @@ const TradeForm = () => {
       return;
     }
 
-    // 주식 선택된 항목에서 최신 가격 정보를 가져오기
     const stockInfo = stocks.find((stock) => stock.symbol === selectedStock);
     if (!stockInfo) {
       alert('선택한 주식을 찾을 수 없습니다.');
@@ -107,7 +103,6 @@ const TradeForm = () => {
     }
 
     if (tradeType === 'buy') {
-      // 구매 로직
       const totalCost = stockInfo.price * quantity;
 
       if (totalCost > userData.cash) {
@@ -116,27 +111,27 @@ const TradeForm = () => {
       }
 
       try {
-        // 자산 업데이트
         const updatedAssets = [...userData.assets];
         const existingStock = updatedAssets.find((asset) => asset.stockName === selectedStock);
 
         if (existingStock) {
-          existingStock.quantity += quantity; // 기존 주식 수량 증가
+          existingStock.quantity += quantity; 
         } else {
-          updatedAssets.push({ stockName: selectedStock, quantity }); // 새로운 주식 추가
+          updatedAssets.push({ 
+            stockName: selectedStock, 
+            quantity, 
+            purchasePrice: stockInfo.price // 구매 가격 추가
+          });
         }
 
-        // 현금 차감
         const updatedCash = userData.cash - totalCost;
 
-        // Firestore 업데이트
         const userRef = doc(db, 'users', userData.docId);
         await updateDoc(userRef, {
           assets: updatedAssets,
           cash: updatedCash,
         });
 
-        // 사용자 데이터 상태 업데이트
         setUserData((prev) => ({ ...prev, assets: updatedAssets, cash: updatedCash }));
 
         alert('거래가 성공적으로 완료되었습니다.');
@@ -145,7 +140,6 @@ const TradeForm = () => {
         alert('거래 처리 중 문제가 발생했습니다.');
       }
     } else if (tradeType === 'sell') {
-      // 판매 로직
       const existingStock = userData.assets.find((asset) => asset.stockName === selectedStock);
 
       if (!existingStock || existingStock.quantity < quantity) {
@@ -154,26 +148,22 @@ const TradeForm = () => {
       }
 
       try {
-        // 자산 업데이트
         const updatedAssets = userData.assets
           .map((asset) =>
             asset.stockName === selectedStock
               ? { ...asset, quantity: asset.quantity - quantity }
               : asset
           )
-          .filter((asset) => asset.quantity > 0); // 수량이 0인 주식은 제거
+          .filter((asset) => asset.quantity > 0);
 
-        // 현금 추가
         const updatedCash = userData.cash + stockInfo.price * quantity;
 
-        // Firestore 업데이트
         const userRef = doc(db, 'users', userData.docId);
         await updateDoc(userRef, {
           assets: updatedAssets,
           cash: updatedCash,
         });
 
-        // 사용자 데이터 상태 업데이트
         setUserData((prev) => ({ ...prev, assets: updatedAssets, cash: updatedCash }));
 
         alert('판매가 성공적으로 완료되었습니다.');
@@ -188,11 +178,15 @@ const TradeForm = () => {
     setSelectedStock(e.target.value);
   };
 
+  const calculateProfitLoss = (purchasePrice, currentPrice) => {
+    if (currentPrice === 0) return 0; // 현재 가격이 0일 경우 수익률을 0으로 처리
+    return purchasePrice > 0 ? ((currentPrice - purchasePrice) / purchasePrice) * 100 : 0;
+  };
+
   return (
     <div>
       <h2 style={{ textAlign: 'center' }}>거래 폼</h2>
       
-      {/* 현재 현금 표시 */}
       {userData && (
         <div style={{ textAlign: 'center', marginBottom: '20px' }}>
           <h3>현재 보유 현금: ${userData.cash.toFixed(2)}</h3>
@@ -248,6 +242,7 @@ const TradeForm = () => {
               <th style={{ border: '1px solid #ccc', padding: '8px' }}>보유 수량</th>
               <th style={{ border: '1px solid #ccc', padding: '8px' }}>현재 가격</th>
               <th style={{ border: '1px solid #ccc', padding: '8px' }}>총 가치</th>
+              <th style={{ border: '1px solid #ccc', padding: '8px' }}>수익률</th>
             </tr>
           </thead>
           <tbody>
@@ -255,6 +250,8 @@ const TradeForm = () => {
               const stock = stocks.find((s) => s.symbol === asset.stockName);
               const price = stock ? stock.price : 0;
               const totalValue = asset.quantity * price;
+              const profitLoss = calculateProfitLoss(asset.purchasePrice, price);
+              const profitLossStyle = profitLoss > 0 ? { color: 'green' } : { color: 'red' };
 
               return (
                 <tr key={asset.stockName}>
@@ -262,6 +259,9 @@ const TradeForm = () => {
                   <td style={{ border: '1px solid #ccc', padding: '8px' }}>{asset.quantity}</td>
                   <td style={{ border: '1px solid #ccc', padding: '8px' }}>${price.toFixed(2)}</td>
                   <td style={{ border: '1px solid #ccc', padding: '8px' }}>${totalValue.toFixed(2)}</td>
+                  <td style={{ border: '1px solid #ccc', padding: '8px', ...profitLossStyle }}>
+                    {profitLoss.toFixed(2)}%
+                  </td>
                 </tr>
               );
             })}
