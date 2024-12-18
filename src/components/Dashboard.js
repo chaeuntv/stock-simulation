@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { auth, db } from "../firebase";
-import { collection, getDocs } from "firebase/firestore";
+import { collection, getDocs, updateDoc, doc } from "firebase/firestore";
 import { useNavigate } from "react-router-dom"; // react-router-dom 추가
 
 // Firebase에서 모든 유저 데이터를 가져오는 함수
@@ -99,6 +99,40 @@ const Dashboard = () => {
       total += userData.cash || 0; // 현금이 없다면 0으로 처리
 
       setTotalAssets(total); // 총 자산 상태 업데이트
+
+      // 총 자산 값을 Firebase에 저장
+      const updateUserAssets = async () => {
+        const userDocRef = doc(db, "users", userData.id); // 현재 로그인한 유저의 문서 참조
+        try {
+          await updateDoc(userDocRef, {
+            totalAssets: total, // 총 자산 값을 업데이트
+          });
+          console.log("Total assets updated successfully");
+        } catch (error) {
+          console.error("Error updating total assets:", error);
+        }
+      };
+
+      // 사용자 순위 업데이트
+      const updateUserRank = async () => {
+        const users = await fetchAllUsers(); // 모든 유저 데이터 가져오기
+        const rankedUsers = users
+          .map((u) => ({ ...u, totalAssets: u.totalAssets || 0 })) // totalAssets가 없으면 0으로 설정
+          .sort((a, b) => b.totalAssets - a.totalAssets);
+
+        const rank = rankedUsers.findIndex((u) => u.uid === userData.uid) + 1;
+        setUserRank(rank);
+        console.log("User rank updated to:", rank);
+      };
+
+      // 10초마다 총 자산과 순위 업데이트
+      const intervalId = setInterval(() => {
+        updateUserAssets();
+        updateUserRank();
+      }, 10000); // 10초마다 호출
+
+      // 컴포넌트 언마운트 시 setInterval 종료
+      return () => clearInterval(intervalId);
     }
   }, [userData, stocks]);
 

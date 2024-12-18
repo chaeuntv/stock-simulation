@@ -7,41 +7,50 @@ const Ranking = () => {
   const [loading, setLoading] = useState(true); // 로딩 상태
   const [currentUserUid, setCurrentUserUid] = useState(null); // 현재 로그인된 유저의 UID
 
+  // 현재 로그인된 유저 UID를 가져오기
+  const fetchCurrentUser = () => {
+    const user = auth.currentUser;
+    if (user) {
+      setCurrentUserUid(user.uid);
+    }
+  };
+
+  // Firebase에서 유저 데이터를 가져오는 함수
+  const fetchUsers = async () => {
+    try {
+      const querySnapshot = await getDocs(collection(db, "users"));
+      const usersData = querySnapshot.docs.map((doc) => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          uid: data.uid, // 유저 UID 추가
+          username: data.username,
+          totalAssets: data.totalAssets || 0, // totalAssets가 없으면 0으로 설정
+        };
+      });
+
+      // totalAssets 기준으로 내림차순 정렬 (내림차순으로 가장 큰 자산을 첫 번째로)
+      usersData.sort((a, b) => b.totalAssets - a.totalAssets);
+
+      setUsers(usersData);
+      setLoading(false);
+    } catch (error) {
+      console.error("Error fetching users:", error);
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
-    // 현재 로그인된 유저 UID를 가져오기
-    const fetchCurrentUser = () => {
-      const user = auth.currentUser;
-      if (user) {
-        setCurrentUserUid(user.uid);
-      }
-    };
-
-    const fetchUsers = async () => {
-      try {
-        const querySnapshot = await getDocs(collection(db, "users"));
-        const usersData = querySnapshot.docs.map((doc) => {
-          const data = doc.data();
-          return {
-            id: doc.id,
-            uid: data.uid, // 유저 UID 추가
-            username: data.username,
-            totalAssets: data.totalAssets || 0, // totalAssets가 없으면 0으로 설정
-          };
-        });
-
-        // totalAssets 기준으로 내림차순 정렬 (내림차순으로 가장 큰 자산을 첫 번째로)
-        usersData.sort((a, b) => b.totalAssets - a.totalAssets);
-
-        setUsers(usersData);
-        setLoading(false);
-      } catch (error) {
-        console.error("Error fetching users:", error);
-        setLoading(false);
-      }
-    };
-
     fetchCurrentUser();
     fetchUsers();
+
+    // 10초마다 유저 목록을 새로 가져오고 업데이트
+    const intervalId = setInterval(() => {
+      fetchUsers();
+    }, 10000); // 10초마다 호출
+
+    // 컴포넌트 언마운트 시 setInterval 종료
+    return () => clearInterval(intervalId);
   }, []);
 
   if (loading) {
