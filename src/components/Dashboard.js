@@ -3,7 +3,7 @@ import React from 'react';
 const Dashboard = ({ user }) => {
   return (
     <div className="dashboard">
-      <h2>Welcome, {user ? user.name : "Guest"}</h2>
+      <h2>Welcome to dashboard, {user ? user.name : "Guest"}</h2>
       <div className="balance-info">
         <p>Cash: ${user ? user.cash : 1000}</p>
         <p>Total Assets: ${user ? user.cash + 5000 : 1000}</p>

@@ -1,11 +1,16 @@
 import React, { useState } from 'react';
 import { auth, createUserWithEmailAndPassword } from '../firebase';
+import { doc, setDoc, getFirestore } from 'firebase/firestore';
+import { useNavigate } from 'react-router-dom';
 
 const Signup = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [error, setError] = useState('');
+    const [username, setUsername] = useState(''); // 아이디
+    const db = getFirestore(); // Firestore 초기화
+    const navigate = useNavigate();
 
     const handleSignup = async (e) => {
         e.preventDefault();
@@ -18,8 +23,15 @@ const Signup = () => {
 
         try {
             // Firebase v9 문법: 계정 생성
-            await createUserWithEmailAndPassword(auth, email, password);
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            const user = userCredential.user;
+            await setDoc(doc(db, 'users', username), {
+                uid: user.uid,
+                email: email,
+                username: username,
+            })
             alert('회원가입 성공! 로그인해주세요.');
+            navigate('/Login');
         } catch (err) {
             console.error('Signup Error:', err.message);
             setError(`회원가입 실패: ${err.message}`);
@@ -36,6 +48,16 @@ const Signup = () => {
                         type="email"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
+                        required
+                    />
+                </div>
+                <div>
+                    <label>Id:</label>
+                    <input
+                        type="text"
+                        placeholder="아이디"
+                        value={username}
+                        onChange={(e) => setUsername(e.target.value)}
                         required
                     />
                 </div>

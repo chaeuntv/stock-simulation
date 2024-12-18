@@ -3,6 +3,7 @@
 // src/firebase.js
 import { initializeApp } from 'firebase/app'; // Firebase 앱 초기화
 import { getAuth, signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth'; // 인증 모듈화
+import { getFirestore } from "firebase/firestore";
 
 // Firebase 프로젝트 설정 (이 부분은 Firebase 콘솔에서 가져옵니다)
 const firebaseConfig = {
@@ -21,6 +22,7 @@ const app = initializeApp(firebaseConfig);
 
 // 인증 객체 초기화
 const auth = getAuth(app);
+const db = getFirestore(app);
 
 // 인증 및 Firestore 객체를 내보내기
-export { auth, signInWithEmailAndPassword, createUserWithEmailAndPassword };
+export { auth, signInWithEmailAndPassword, createUserWithEmailAndPassword, db};
