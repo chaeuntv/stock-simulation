@@ -5,6 +5,7 @@ import { getFirestore, query, collection, where, getDocs, doc, updateDoc } from 
 const TradeForm = () => {
   const [userData, setUserData] = useState(null);
   const [uid, setUid] = useState(null);
+
   const [selectedStock, setSelectedStock] = useState(null);
   const [quantity, setQuantity] = useState(0);
   const [stocks, setStocks] = useState([]);
@@ -65,7 +66,7 @@ const TradeForm = () => {
       setError('사용자 인증에 문제가 발생했습니다.');
     }
 
-    fetchStocksData(); 
+    fetchStocksData();
 
     const intervalId = setInterval(fetchStocksData, 10000); // 10초마다 호출
 
@@ -115,12 +116,19 @@ const TradeForm = () => {
         const existingStock = updatedAssets.find((asset) => asset.stockName === selectedStock);
 
         if (existingStock) {
-          existingStock.quantity += quantity; 
+          // 평균 구매가와 수량 갱신
+          const oldTotalCost = existingStock.cumulativeBuyPrice * existingStock.quantity;
+          const newTotalCost = totalCost;
+          const newQuantity = existingStock.quantity + quantity;
+
+          existingStock.cumulativeBuyPrice = (oldTotalCost + newTotalCost) / newQuantity;
+          existingStock.quantity = newQuantity;
         } else {
-          updatedAssets.push({ 
-            stockName: selectedStock, 
-            quantity, 
-            purchasePrice: stockInfo.price // 구매 가격 추가
+          updatedAssets.push({
+            stockName: selectedStock,
+            quantity,
+            cumulativeBuyPrice: stockInfo.price, // 첫 구매 가격 설정
+            cumulativeSellPrice: 0, // 초기 판매가
           });
         }
 
@@ -132,7 +140,11 @@ const TradeForm = () => {
           cash: updatedCash,
         });
 
-        setUserData((prev) => ({ ...prev, assets: updatedAssets, cash: updatedCash }));
+        setUserData((prev) => ({
+          ...prev,
+          assets: updatedAssets,
+          cash: updatedCash,
+        }));
 
         alert('거래가 성공적으로 완료되었습니다.');
       } catch (error) {
@@ -148,23 +160,34 @@ const TradeForm = () => {
       }
 
       try {
-        const updatedAssets = userData.assets
-          .map((asset) =>
-            asset.stockName === selectedStock
-              ? { ...asset, quantity: asset.quantity - quantity }
-              : asset
-          )
-          .filter((asset) => asset.quantity > 0);
+        const totalSale = stockInfo.price * quantity;
+        const newQuantity = existingStock.quantity - quantity;
 
-        const updatedCash = userData.cash + stockInfo.price * quantity;
+        if (newQuantity > 0) {
+          // 평균 판매가 갱신
+          const oldTotalSell = existingStock.cumulativeSellPrice * existingStock.quantity;
+          const newTotalSell = stockInfo.price * quantity;
+
+          existingStock.cumulativeSellPrice = (oldTotalSell + newTotalSell) / newQuantity;
+          existingStock.quantity = newQuantity;
+        } else {
+          // 모든 주식 판매 시 마지막 판매가 설정
+          existingStock.cumulativeSellPrice = stockInfo.price;
+          existingStock.quantity = 0;
+        }
+
+        const updatedCash = userData.cash + totalSale;
 
         const userRef = doc(db, 'users', userData.docId);
         await updateDoc(userRef, {
-          assets: updatedAssets,
+          assets: userData.assets, // 수량이 0이더라도 자산에서 제거하지 않음
           cash: updatedCash,
         });
 
-        setUserData((prev) => ({ ...prev, assets: updatedAssets, cash: updatedCash }));
+        setUserData((prev) => ({
+          ...prev,
+          cash: updatedCash,
+        }));
 
         alert('판매가 성공적으로 완료되었습니다.');
       } catch (error) {
@@ -178,15 +201,23 @@ const TradeForm = () => {
     setSelectedStock(e.target.value);
   };
 
-  const calculateProfitLoss = (purchasePrice, currentPrice) => {
-    if (currentPrice === 0) return 0; // 현재 가격이 0일 경우 수익률을 0으로 처리
-    return purchasePrice > 0 ? ((currentPrice - purchasePrice) / purchasePrice) * 100 : 0;
+  const calculateStockProfitLoss = (stock) => {
+    if (stock.quantity === 0) return null;
+
+    const currentStock = stocks.find((s) => s.symbol === stock.stockName);
+    if (!currentStock || !stock.cumulativeBuyPrice) return 0;
+
+    const currentPrice = currentStock.price;
+    const profitLoss =
+      ((currentPrice - stock.cumulativeBuyPrice) / stock.cumulativeBuyPrice) * 100;
+
+    return profitLoss;
   };
 
   return (
     <div>
       <h2 style={{ textAlign: 'center' }}>거래 폼</h2>
-      
+
       {userData && (
         <div style={{ textAlign: 'center', marginBottom: '20px' }}>
           <h3>현재 보유 현금: ${userData.cash.toFixed(2)}</h3>
@@ -241,26 +272,29 @@ const TradeForm = () => {
               <th style={{ border: '1px solid #ccc', padding: '8px' }}>주식 이름</th>
               <th style={{ border: '1px solid #ccc', padding: '8px' }}>보유 수량</th>
               <th style={{ border: '1px solid #ccc', padding: '8px' }}>현재 가격</th>
-              <th style={{ border: '1px solid #ccc', padding: '8px' }}>총 가치</th>
               <th style={{ border: '1px solid #ccc', padding: '8px' }}>수익률</th>
             </tr>
           </thead>
           <tbody>
             {userData.assets.map((asset) => {
               const stock = stocks.find((s) => s.symbol === asset.stockName);
-              const price = stock ? stock.price : 0;
-              const totalValue = asset.quantity * price;
-              const profitLoss = calculateProfitLoss(asset.purchasePrice, price);
-              const profitLossStyle = profitLoss > 0 ? { color: 'green' } : { color: 'red' };
+              const currentPrice = stock ? stock.price : 0;
+              const profitLoss = calculateStockProfitLoss(asset);
+              const profitLossStyle = profitLoss >= 0 ? 'red' : 'blue';
 
               return (
                 <tr key={asset.stockName}>
                   <td style={{ border: '1px solid #ccc', padding: '8px' }}>{asset.stockName}</td>
                   <td style={{ border: '1px solid #ccc', padding: '8px' }}>{asset.quantity}</td>
-                  <td style={{ border: '1px solid #ccc', padding: '8px' }}>${price.toFixed(2)}</td>
-                  <td style={{ border: '1px solid #ccc', padding: '8px' }}>${totalValue.toFixed(2)}</td>
-                  <td style={{ border: '1px solid #ccc', padding: '8px', ...profitLossStyle }}>
-                    {profitLoss.toFixed(2)}%
+                  <td style={{ border: '1px solid #ccc', padding: '8px' }}>${currentPrice.toFixed(2)}</td>
+                  <td
+                    style={{
+                      border: '1px solid #ccc',
+                      padding: '8px',
+                      color: profitLossStyle,
+                    }}
+                  >
+                    {profitLoss !== null ? `${profitLoss.toFixed(2)}%` : '-'}
                   </td>
                 </tr>
               );
