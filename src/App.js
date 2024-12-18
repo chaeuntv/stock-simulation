@@ -32,13 +32,20 @@ function App() {
   }, []); // 빈 배열로 두면 처음 렌더링할 때만 실행됨
 
   // 주식 데이터 로딩 (예시로 하드코딩된 데이터 사용)
-  useEffect(() => {
-    setStocks([
-      { time: "2024-12-17 10:00", symbol: "AAPL", price: 150 },
-      { time: "2024-12-17 10:01", symbol: "AAPL", price: 152 },
-      { time: "2024-12-17 10:02", symbol: "가나다라", price: 153 },
-    ]);
-  }, []);
+ useEffect(() => {
+  const fetchStockData = async () => {
+    try {
+      const response = await fetch("/stocks.json"); // public 폴더에서 JSON 파일 가져오기
+      const data = await response.json();
+      setStocks(data);
+    } catch (error) {
+      console.error("Error fetching stock data:", error);
+    }
+  };
+
+  fetchStockData();
+}, []);
+
 
   return (
     <Router>
