@@ -40,6 +40,7 @@ const Dashboard = () => {
   const [userRank, setUserRank] = useState(null); // 사용자의 순위를 저장
   const navigate = useNavigate();
 
+  // 사용자 데이터 및 주식 데이터 가져오기
   useEffect(() => {
     const fetchUserData = async () => {
       const user = auth.currentUser;
@@ -83,20 +84,22 @@ const Dashboard = () => {
     fetchStocks();
   }, []);
 
+  // 총 자산 계산 및 10초마다 갱신
   useEffect(() => {
-    if (userData && stocks.length > 0) {
-      let total = 0;
+    const calculateTotalAssets = () => {
+      if (userData && stocks.length > 0) {
+        let total = 0;
 
-      // userData.assets에 있는 주식과 stocks에서 최신 가격을 찾아 곱해 총 자산 계산
-      userData.assets.forEach((asset) => {
-        const latestPrice = getLatestPrice(asset.stockName, stocks);
-        if (latestPrice !== null) {
-          total += asset.quantity * latestPrice;
-        }
-      });
+        // userData.assets에 있는 주식과 stocks에서 최신 가격을 찾아 곱해 총 자산 계산
+        userData.assets.forEach((asset) => {
+          const latestPrice = getLatestPrice(asset.stockName, stocks);
+          if (latestPrice !== null) {
+            total += asset.quantity * latestPrice;
+          }
+        });
 
-      // 현금을 총 자산에 추가
-      total += userData.cash || 0; // 현금이 없다면 0으로 처리
+        // 현금을 총 자산에 추가
+        total += userData.cash || 0; // 현금이 없다면 0으로 처리
 
       setTotalAssets(total); // 총 자산 상태 업데이트
 
@@ -134,6 +137,7 @@ const Dashboard = () => {
       // 컴포넌트 언마운트 시 setInterval 종료
       return () => clearInterval(intervalId);
     }
+
   }, [userData, stocks]);
 
   if (loading) {
