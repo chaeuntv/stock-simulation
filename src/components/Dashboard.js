@@ -130,25 +130,6 @@ const Dashboard = () => {
   return (
     <div>
       <h1>Welcome, {userData.username}!</h1>
-      <p>Email: {userData.email}</p>
-      <p>Cash: ${userData.cash}</p>
-
-      <h2>Your Assets:</h2>
-      {updatedAssets && updatedAssets.length > 0 ? (
-        <ul>
-          {updatedAssets.map((asset, index) => (
-            <li key={index}>
-              {asset.stockName}: {asset.quantity} shares at ${asset.price} each
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p>No assets available</p>
-      )}
-
-      <h2>Total Assets: ${totalAssets.toFixed(2)}</h2> {/* 총 자산 표시 */}
-
-      <button onClick={() => navigate("/ranking")}>View Rankings</button> {/* 순위 페이지로 이동하는 버튼 */}
     </div>
   );
 };
