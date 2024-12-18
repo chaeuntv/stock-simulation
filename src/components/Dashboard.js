@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { auth, db } from "../firebase";
 import { collection, query, where, getDocs } from "firebase/firestore";
 
+// Firebase에서 유저 데이터를 가져오는 함수
 const fetchUserData = async (uid) => {
   try {
     // Firestore 쿼리: UID로 문서 검색
@@ -54,6 +55,19 @@ const Dashboard = () => {
       <h1>Welcome, {userData.username}!</h1>
       <p>Email: {userData.email}</p>
       <p>Cash: {userData.cash}</p>
+
+      <h2>Your Assets:</h2>
+      {userData.assets && userData.assets.length > 0 ? (
+        <ul>
+          {userData.assets.map((asset, index) => (
+            <li key={index}>
+              {asset.stockName}: {asset.quantity} shares at ${asset.price} each
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p>No assets available</p>
+      )}
     </div>
   );
 };
