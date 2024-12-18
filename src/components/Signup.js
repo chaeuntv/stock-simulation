@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { auth, createUserWithEmailAndPassword } from '../firebase';
-import { doc, setDoc, getFirestore } from 'firebase/firestore';
+import { doc, setDoc, updateDoc, getFirestore } from 'firebase/firestore';
 import { useNavigate } from 'react-router-dom';
+import { FieldValue } from 'firebase/firestore';
 
 const Signup = () => {
     const [email, setEmail] = useState('');
@@ -25,16 +26,27 @@ const Signup = () => {
             // Firebase v9 문법: 계정 생성
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
-            await setDoc(doc(db, 'users', username), {
+
+            // 기본 자산 정보 설정 (주식 정보는 삭제)
+            const initialAssets = ['AAPL', 'GOOG', 'AMZN', 'TSLA', 'MSFT', 'META'].map(symbol => {
+                return {
+                    stockName: symbol,
+                    quantity: 0,
+                    // price 필드 삭제
+                };
+            });
+
+            // Firestore에 사용자 데이터 저장
+            const userRef = doc(db, 'users', username);
+            await setDoc(userRef, {
                 uid: user.uid,
                 email: email,
                 username: username,
-                assets: [
-                    { stockName: 'Apple', quantity: 0, price: 0 },  // 기본 자산 정보 추가
-                    { stockName: 'Tesla', quantity: 0, price: 0 }
-                ], 
-                cash: 100000,
-            })
+                assets: initialAssets, // 기본 자산 정보
+                cash: 100000, // 기본 현금
+            });
+
+
             alert('회원가입 성공! 로그인해주세요.');
             navigate('/Login');
         } catch (err) {

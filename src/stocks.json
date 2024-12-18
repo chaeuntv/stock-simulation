@@ -1,0 +1,43 @@
+[
+  { "time": "2024-12-18 11:39", "symbol": "AAPL", "price": 150.25 },
+  { "time": "2024-12-18 11:40", "symbol": "AAPL", "price": 150.30 },
+  { "time": "2024-12-18 11:41", "symbol": "AAPL", "price": 150.35 },
+  { "time": "2024-12-18 11:42", "symbol": "AAPL", "price": 150.40 },
+  { "time": "2024-12-18 11:43", "symbol": "AAPL", "price": 150.45 },
+  { "time": "2024-12-18 11:44", "symbol": "AAPL", "price": 150.50 },
+  
+  { "time": "2024-12-18 11:39", "symbol": "GOOG", "price": 2750.20 },
+  { "time": "2024-12-18 11:40", "symbol": "GOOG", "price": 2750.50 },
+  { "time": "2024-12-18 11:41", "symbol": "GOOG", "price": 2751.00 },
+  { "time": "2024-12-18 11:42", "symbol": "GOOG", "price": 2751.20 },
+  { "time": "2024-12-18 11:43", "symbol": "GOOG", "price": 2751.40 },
+  { "time": "2024-12-18 11:44", "symbol": "GOOG", "price": 2751.80 },
+  
+  { "time": "2024-12-18 11:39", "symbol": "AMZN", "price": 3355.60 },
+  { "time": "2024-12-18 11:40", "symbol": "AMZN", "price": 3355.80 },
+  { "time": "2024-12-18 11:41", "symbol": "AMZN", "price": 3356.10 },
+  { "time": "2024-12-18 11:42", "symbol": "AMZN", "price": 3356.40 },
+  { "time": "2024-12-18 11:43", "symbol": "AMZN", "price": 3356.70 },
+  { "time": "2024-12-18 11:44", "symbol": "AMZN", "price": 3357.00 },
+  
+  { "time": "2024-12-18 11:39", "symbol": "TSLA", "price": 730.80 },
+  { "time": "2024-12-18 11:40", "symbol": "TSLA", "price": 731.20 },
+  { "time": "2024-12-18 11:41", "symbol": "TSLA", "price": 731.50 },
+  { "time": "2024-12-18 11:42", "symbol": "TSLA", "price": 731.80 },
+  { "time": "2024-12-18 11:43", "symbol": "TSLA", "price": 732.10 },
+  { "time": "2024-12-18 11:44", "symbol": "TSLA", "price": 732.50 },
+  
+  { "time": "2024-12-18 11:39", "symbol": "MSFT", "price": 290.60 },
+  { "time": "2024-12-18 11:40", "symbol": "MSFT", "price": 290.80 },
+  { "time": "2024-12-18 11:41", "symbol": "MSFT", "price": 290.90 },
+  { "time": "2024-12-18 11:42", "symbol": "MSFT", "price": 291.10 },
+  { "time": "2024-12-18 11:43", "symbol": "MSFT", "price": 291.30 },
+  { "time": "2024-12-18 11:44", "symbol": "MSFT", "price": 291.50 },
+  
+  { "time": "2024-12-18 11:39", "symbol": "META", "price": 320.25 },
+  { "time": "2024-12-18 11:40", "symbol": "META", "price": 320.50 },
+  { "time": "2024-12-18 11:41", "symbol": "META", "price": 320.75 },
+  { "time": "2024-12-18 11:42", "symbol": "META", "price": 321.00 },
+  { "time": "2024-12-18 11:43", "symbol": "META", "price": 321.20 },
+  { "time": "2024-12-18 11:44", "symbol": "META", "price": 321.50 }
+]
