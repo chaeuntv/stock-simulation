@@ -19,8 +19,13 @@ const StockGraph = () => {
   // 주식 심볼을 고유하게 추출
   const stockSymbols = Array.from(new Set(stocks.map(stock => stock.symbol)));
 
-  // 선택된 주식에 해당하는 데이터만 필터링
-  const selectedStockData = stocks.filter(stock => stock.symbol === selectedStock);
+  // 현재 시간 가져오기 (UTC 기준으로)
+  const currentTime = new Date();
+
+  // 선택된 주식에 해당하는 데이터만 필터링 (현재 시간 이전의 데이터만)
+  const selectedStockData = stocks
+    .filter(stock => stock.symbol === selectedStock) // 선택된 주식만 필터링
+    .filter(stock => new Date(stock.time) <= currentTime); // 현재 시간 이전의 데이터만 필터링
 
   // 차트 데이터 설정
   const data = {
