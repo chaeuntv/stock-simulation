@@ -130,6 +130,7 @@ const Dashboard = () => {
   return (
     <div>
       <h1>Welcome, {userData.username}!</h1>
+      <h2>Total Assets: ${totalAssets.toFixed(2)}</h2> {/* 총 자산 표시 */}
       <button onClick={() => navigate("/ranking")}>View Rankings</button> {/* 순위 페이지로 이동하는 버튼 */}
     </div>
   );
