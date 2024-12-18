@@ -9,6 +9,7 @@ import StockGraph from './components/StockGraph';
 import TradeForm from './components/TradeForm';
 import Login from './components/Login';
 import Signup from './components/Signup';
+import Ranking from './components/Ranking';
 import './App.css';
 
 function App() {
@@ -70,6 +71,7 @@ function App() {
                 )
               }
             />
+            <Route path="/ranking" element={<Ranking />} />  {/* /ranking 경로 추가 */}
             <Route path="/" element={<Login />} />
           </Routes>
         </div>

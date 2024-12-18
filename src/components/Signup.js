@@ -30,8 +30,12 @@ const Signup = () => {
                 email: email,
                 username: username,
                 assets: [
-                    { stockName: 'Apple', quantity: 0, price: 0 },  // 기본 자산 정보 추가
-                    { stockName: 'Tesla', quantity: 0, price: 0 }
+                    { stockName: 'AAPL', quantity: 1 },  // 기본 자산 정보 추가
+                    { stockName: 'GOOG', quantity: 2 },
+                    { stockName: 'AMZN', quantity: 3 },
+                    { stockName: 'TSLA', quantity: 4 },
+                    { stockName: 'MSFT', quantity: 5 },
+                    { stockName: 'META', quantity: 6 },
                 ], 
                 cash: 100000,
             })
