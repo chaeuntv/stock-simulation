@@ -18,7 +18,7 @@ const Ranking = () => {
   // Firebase에서 유저 데이터를 가져오는 함수
   const fetchUsers = async () => {
     try {
-      const querySnapshot = await getDocs(collection(db, "usersam"));
+      const querySnapshot = await getDocs(collection(db, "users2"));
       const usersData = querySnapshot.docs.map((doc) => {
         const data = doc.data();
         return {

@@ -18,7 +18,7 @@ function Login() {
 
         try {
             // Firestore에서 입력한 아이디로 이메일 검색
-            const usersRef = collection(db, 'usersam');
+            const usersRef = collection(db, 'users2');
             const querySnapshot = await getDocs(usersRef);
 
             let email = null;

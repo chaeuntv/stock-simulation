@@ -15,7 +15,7 @@ const TradeForm = () => {
 
   const fetchUserData = async (uid) => {
     try {
-      const q = query(collection(db, 'usersam'), where('uid', '==', uid));
+      const q = query(collection(db, 'users2'), where('uid', '==', uid));
       const querySnapshot = await getDocs(q);
 
       if (!querySnapshot.empty) {
@@ -133,7 +133,7 @@ const TradeForm = () => {
 
         const updatedCash = userData.cash - totalCost;
 
-        const userRef = doc(db, 'usersam', userData.docId);
+        const userRef = doc(db, 'users2', userData.docId);
         await updateDoc(userRef, {
           assets: updatedAssets,
           cash: updatedCash,
@@ -175,7 +175,7 @@ const TradeForm = () => {
 
         const updatedCash = userData.cash + totalSale;
 
-        const userRef = doc(db, 'usersam', userData.docId);
+        const userRef = doc(db, 'users2', userData.docId);
         await updateDoc(userRef, {
           assets: userData.assets,
           cash: updatedCash,

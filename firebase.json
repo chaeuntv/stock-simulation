@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "site" : "amstock",
+    "site" : "test-pm-stock",
     "public": "build",
     "ignore": [
       "firebase.json",

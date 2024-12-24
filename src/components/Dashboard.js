@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 
 const fetchAllUsers = async () => {
   try {
-    const querySnapshot = await getDocs(collection(db, "usersam"));
+    const querySnapshot = await getDocs(collection(db, "users2"));
     return querySnapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
@@ -108,7 +108,7 @@ const Dashboard = () => {
   useEffect(() => {
     if (userData && totalAssets > 0) {
       const updateUserAssets = async () => {
-        const userDocRef = doc(db, "usersam", userData.id);
+        const userDocRef = doc(db, "users2", userData.id);
         try {
           await updateDoc(userDocRef, {
             totalAssets: totalAssets, // 최신 상태 값 사용
