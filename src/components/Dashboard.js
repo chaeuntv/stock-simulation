@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 
 const fetchAllUsers = async () => {
   try {
-    const querySnapshot = await getDocs(collection(db, "userspm"));
+    const querySnapshot = await getDocs(collection(db, "usersam"));
     return querySnapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
@@ -98,12 +98,20 @@ const Dashboard = () => {
 
       calculateTotalAssets();
 
-      // Firebase에 총 자산 업데이트
+      // 10초마다 자산 계산
+      const intervalId = setInterval(calculateTotalAssets, 10000);
+
+      return () => clearInterval(intervalId); // 컴포넌트 언마운트 시 제거
+    }
+  }, [userData, stocks]);
+
+  useEffect(() => {
+    if (userData && totalAssets > 0) {
       const updateUserAssets = async () => {
-        const userDocRef = doc(db, "userspm", userData.id);
+        const userDocRef = doc(db, "usersam", userData.id);
         try {
           await updateDoc(userDocRef, {
-            totalAssets: totalAssets,
+            totalAssets: totalAssets, // 최신 상태 값 사용
           });
           console.log("Total assets updated successfully in Firebase.");
         } catch (error) {
@@ -112,30 +120,8 @@ const Dashboard = () => {
       };
 
       updateUserAssets();
-
-      // 사용자 순위 업데이트
-      const updateUserRank = async () => {
-        const users = await fetchAllUsers();
-        const rankedUsers = users
-          .map((u) => ({ ...u, totalAssets: u.totalAssets || 0 }))
-          .sort((a, b) => b.totalAssets - a.totalAssets);
-
-        const rank = rankedUsers.findIndex((u) => u.uid === userData.uid) + 1;
-        setUserRank(rank);
-        console.log("User rank updated to:", rank);
-      };
-
-      // 총 자산 및 순위를 10초마다 업데이트
-      const intervalId = setInterval(() => {
-        calculateTotalAssets();  // 총 자산 계산
-        updateUserAssets();      // Firebase에 자산 업데이트
-        updateUserRank();        // 사용자 순위 업데이트
-      }, 10000); // 10초마다 호출
-
-      // 컴포넌트 언마운트 시 setInterval 종료
-      return () => clearInterval(intervalId);
     }
-  }, [userData, stocks, totalAssets]);
+  }, [totalAssets, userData]); // totalAssets가 변경될 때만 실행
 
   if (loading) {
     return <p>Loading...</p>;

@@ -59,7 +59,7 @@ const Signup = () => {
                 });
 
             // Firestore에 사용자 데이터 저장
-            const userRef = doc(db, 'userspm', username);
+            const userRef = doc(db, 'usersam', username);
             await setDoc(userRef, {
                 uid: user.uid,
                 email: email,
