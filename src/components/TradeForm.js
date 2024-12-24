@@ -15,7 +15,7 @@ const TradeForm = () => {
 
   const fetchUserData = async (uid) => {
     try {
-      const q = query(collection(db, 'users'), where('uid', '==', uid));
+      const q = query(collection(db, 'userspm'), where('uid', '==', uid));
       const querySnapshot = await getDocs(q);
 
       if (!querySnapshot.empty) {
@@ -116,7 +116,6 @@ const TradeForm = () => {
         const existingStock = updatedAssets.find((asset) => asset.stockName === selectedStock);
 
         if (existingStock) {
-          // 평균 구매가와 수량 갱신
           const oldTotalCost = existingStock.cumulativeBuyPrice * existingStock.quantity;
           const newTotalCost = totalCost;
           const newQuantity = existingStock.quantity + quantity;
@@ -127,14 +126,14 @@ const TradeForm = () => {
           updatedAssets.push({
             stockName: selectedStock,
             quantity,
-            cumulativeBuyPrice: stockInfo.price, // 첫 구매 가격 설정
-            cumulativeSellPrice: 0, // 초기 판매가
+            cumulativeBuyPrice: stockInfo.price,
+            cumulativeSellPrice: 0,
           });
         }
 
         const updatedCash = userData.cash - totalCost;
 
-        const userRef = doc(db, 'users', userData.docId);
+        const userRef = doc(db, 'userspm', userData.docId);
         await updateDoc(userRef, {
           assets: updatedAssets,
           cash: updatedCash,
@@ -164,23 +163,21 @@ const TradeForm = () => {
         const newQuantity = existingStock.quantity - quantity;
 
         if (newQuantity > 0) {
-          // 평균 판매가 갱신
           const oldTotalSell = existingStock.cumulativeSellPrice * existingStock.quantity;
           const newTotalSell = stockInfo.price * quantity;
 
           existingStock.cumulativeSellPrice = (oldTotalSell + newTotalSell) / newQuantity;
           existingStock.quantity = newQuantity;
         } else {
-          // 모든 주식 판매 시 마지막 판매가 설정
           existingStock.cumulativeSellPrice = stockInfo.price;
           existingStock.quantity = 0;
         }
 
         const updatedCash = userData.cash + totalSale;
 
-        const userRef = doc(db, 'users', userData.docId);
+        const userRef = doc(db, 'userspm', userData.docId);
         await updateDoc(userRef, {
-          assets: userData.assets, // 수량이 0이더라도 자산에서 제거하지 않음
+          assets: userData.assets,
           cash: updatedCash,
         });
 
@@ -216,94 +213,112 @@ const TradeForm = () => {
 
   return (
     <div>
-      <h2 style={{ textAlign: 'center' }}>거래 폼</h2>
-
+      <h2 style={{ textAlign: 'center' }}>주식 거래</h2>
       {userData && (
         <div style={{ textAlign: 'center', marginBottom: '20px' }}>
-          <h3>현재 보유 현금: ${userData.cash.toFixed(2)}</h3>
+          <h3>보유 현금: ₩{userData.cash.toLocaleString()}</h3>
         </div>
       )}
+      <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+        <div style={{ flex: 1 }}>
+          <h3>보유 자산</h3>
+          {userData && userData.assets.length > 0 ? (
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr>
+                  <th style={{ border: '1px solid #ccc', padding: '8px' }}>주식 이름</th>
+                  <th style={{ border: '1px solid #ccc', padding: '8px' }}>보유 수량</th>
+                  <th style={{ border: '1px solid #ccc', padding: '8px' }}>현재 가격</th>
+                  <th style={{ border: '1px solid #ccc', padding: '8px' }}>수익률</th>
+                </tr>
+              </thead>
+              <tbody>
+                {userData.assets.map((asset) => {
+                  const stock = stocks.find((s) => s.symbol === asset.stockName);
+                  const currentPrice = stock ? stock.price : 0;
+                  const profitLoss = calculateStockProfitLoss(asset);
+                  const profitLossStyle = profitLoss >= 0 ? 'red' : 'blue';
 
-      <form onSubmit={handleTradeSubmit} style={{ textAlign: 'center' }}>
-        <div>
-          <label>거래 유형:</label>
-          <select value={tradeType} onChange={(e) => setTradeType(e.target.value)}>
-            <option value="buy">구매</option>
-            <option value="sell">판매</option>
-          </select>
+                  return (
+                    <tr key={asset.stockName}>
+                      <td style={{ border: '1px solid #ccc', padding: '8px' }}>
+                        {asset.stockName}
+                      </td>
+                      <td style={{ border: '1px solid #ccc', padding: '8px' }}>
+                        {asset.quantity}
+                      </td>
+                      <td style={{ border: '1px solid #ccc', padding: '8px' }}>
+                        ₩{currentPrice.toLocaleString()}
+                      </td>
+                      <td
+                        style={{
+                          border: '1px solid #ccc',
+                          padding: '8px',
+                          color: profitLossStyle,
+                        }}
+                      >
+                        {profitLoss !== null ? `${profitLoss.toFixed(2)}%` : '-'}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          ) : (
+            <p>보유한 자산이 없습니다.</p>
+          )}
         </div>
-        <div>
-          <label>주식 선택:</label>
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+
+        <form onSubmit={handleTradeSubmit} style={{ flex: 1, marginRight: '20px' }}>
+          <h3>거래 폼</h3>
+          <div>
+            <span>거래 유형:</span>
+            <label>
+              <input
+                type="radio"
+                value="buy"
+                checked={tradeType === 'buy'}
+                onChange={() => setTradeType('buy')}
+              />
+              구매
+            </label>
+            <label>
+              <input
+                type="radio"
+                value="sell"
+                checked={tradeType === 'sell'}
+                onChange={() => setTradeType('sell')}
+              />
+              판매
+            </label>
+          </div>
+          <div>
+            <span>주식 선택:</span>
             {stocks.map((stock) => (
-              <div key={stock.symbol}>
-                <label>
-                  <input
-                    type="radio"
-                    name="stock"
-                    value={stock.symbol}
-                    checked={selectedStock === stock.symbol}
-                    onChange={handleStockSelection}
-                  />
-                  {stock.symbol} (${stock.price.toFixed(2)})
-                </label>
-              </div>
+              <label key={stock.symbol} style={{ display: 'block' }}>
+                <input
+                  type="radio"
+                  value={stock.symbol}
+                  checked={selectedStock === stock.symbol}
+                  onChange={handleStockSelection}
+                />
+                {stock.symbol} (₩{stock.price.toLocaleString()})
+              </label>
             ))}
           </div>
-        </div>
-        <div>
-          <label>수량:</label>
-          <input
-            type="number"
-            value={quantity}
-            onChange={(e) => setQuantity(parseInt(e.target.value, 10))}
-            min="1"
-          />
-        </div>
-        <button type="submit">거래</button>
-        {error && <p style={{ color: 'red' }}>{error}</p>}
-      </form>
-
-      <h3 style={{ textAlign: 'center' }}>보유 자산</h3>
-      {userData && userData.assets.length > 0 ? (
-        <table style={{ margin: '0 auto', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr>
-              <th style={{ border: '1px solid #ccc', padding: '8px' }}>주식 이름</th>
-              <th style={{ border: '1px solid #ccc', padding: '8px' }}>보유 수량</th>
-              <th style={{ border: '1px solid #ccc', padding: '8px' }}>현재 가격</th>
-              <th style={{ border: '1px solid #ccc', padding: '8px' }}>수익률</th>
-            </tr>
-          </thead>
-          <tbody>
-            {userData.assets.map((asset) => {
-              const stock = stocks.find((s) => s.symbol === asset.stockName);
-              const currentPrice = stock ? stock.price : 0;
-              const profitLoss = calculateStockProfitLoss(asset);
-              const profitLossStyle = profitLoss >= 0 ? 'red' : 'blue';
-
-              return (
-                <tr key={asset.stockName}>
-                  <td style={{ border: '1px solid #ccc', padding: '8px' }}>{asset.stockName}</td>
-                  <td style={{ border: '1px solid #ccc', padding: '8px' }}>{asset.quantity}</td>
-                  <td style={{ border: '1px solid #ccc', padding: '8px' }}>${currentPrice.toFixed(2)}</td>
-                  <td
-                    style={{
-                      border: '1px solid #ccc',
-                      padding: '8px',
-                      color: profitLossStyle,
-                    }}
-                  >
-                    {profitLoss !== null ? `${profitLoss.toFixed(2)}%` : '-'}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      ) : (
-        <p style={{ textAlign: 'center' }}>보유한 자산이 없습니다.</p>
-      )}
+          <div>
+            <label>수량:</label>
+            <input
+              type="number"
+              value={quantity}
+              onChange={(e) => setQuantity(parseInt(e.target.value, 10))}
+              min="1"
+            />
+          </div>
+          <button type="submit">거래</button>
+          {error && <p style={{ color: 'red' }}>{error}</p>}
+        </form>
+      </div>
     </div>
   );
 };

@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 
 const fetchAllUsers = async () => {
   try {
-    const querySnapshot = await getDocs(collection(db, "users"));
+    const querySnapshot = await getDocs(collection(db, "userspm"));
     return querySnapshot.docs.map((doc) => ({
       id: doc.id,
       ...doc.data(),
@@ -100,7 +100,7 @@ const Dashboard = () => {
 
       // Firebase에 총 자산 업데이트
       const updateUserAssets = async () => {
-        const userDocRef = doc(db, "users", userData.id);
+        const userDocRef = doc(db, "userspm", userData.id);
         try {
           await updateDoc(userDocRef, {
             totalAssets: totalAssets,
@@ -148,7 +148,7 @@ const Dashboard = () => {
   return (
     <div>
       <h1>환영합니다!, {userData.username}!</h1>
-      <h2>총 자산: ${totalAssets.toFixed(2)}</h2>
+      <h2>총 자산: {totalAssets.toLocaleString("ko-KR", { style: "currency", currency: "KRW" })}</h2>
       {userRank && <h3>당신의 순위: #{userRank}</h3>}
       <button onClick={() => navigate("/ranking")}>순위 보기</button>
     </div>

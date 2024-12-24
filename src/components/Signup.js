@@ -59,13 +59,13 @@ const Signup = () => {
                 });
 
             // Firestore에 사용자 데이터 저장
-            const userRef = doc(db, 'users', username);
+            const userRef = doc(db, 'userspm', username);
             await setDoc(userRef, {
                 uid: user.uid,
                 email: email,
                 username: username,
                 assets: initialAssets, // 주식 정보를 포함한 기본 자산 정보
-                cash: 100000, // 기본 현금
+                cash: 1000000, // 기본 현금
             });
 
             alert('회원가입 성공! 로그인해주세요.');
@@ -95,17 +95,17 @@ const Signup = () => {
                     />
                 </div>
                 <div>
-                    <label>Id:</label>
+                    <label>학번:</label>
                     <input
                         type="text"
-                        placeholder="아이디"
+                        placeholder=""
                         value={username}
                         onChange={(e) => setUsername(e.target.value)}
                         required
                     />
                 </div>
                 <div>
-                    <label>Password:</label>
+                    <label>비밀번호:</label>
                     <input
                         type="password"
                         value={password}
@@ -114,7 +114,7 @@ const Signup = () => {
                     />
                 </div>
                 <div>
-                    <label>Confirm Password:</label>
+                    <label>비밀번호 확인:</label>
                     <input
                         type="password"
                         value={confirmPassword}

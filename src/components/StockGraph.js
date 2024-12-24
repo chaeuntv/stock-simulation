@@ -6,7 +6,7 @@ ChartJS.register(CategoryScale, LinearScale, LineElement, PointElement, Title, T
 
 const StockGraph = () => {
   const [stocks, setStocks] = useState([]);
-  const [selectedStock, setSelectedStock] = useState('AAPL'); // 기본적으로 AAPL을 선택
+  const [selectedStock, setSelectedStock] = useState(' KI '); // 기본적으로 AAPL을 선택
 
   // JSON 데이터를 가져오는 함수
   const fetchStockData = () => {

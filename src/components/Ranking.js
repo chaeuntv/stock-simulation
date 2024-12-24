@@ -18,7 +18,7 @@ const Ranking = () => {
   // Firebase에서 유저 데이터를 가져오는 함수
   const fetchUsers = async () => {
     try {
-      const querySnapshot = await getDocs(collection(db, "users"));
+      const querySnapshot = await getDocs(collection(db, "userspm"));
       const usersData = querySnapshot.docs.map((doc) => {
         const data = doc.data();
         return {
@@ -75,7 +75,11 @@ const Ranking = () => {
                 color: isCurrentUser ? "blue" : "black", // 강조 색상
               }}
             >
-              {index + 1}. {user.username} - ${user.totalAssets.toFixed(2)}
+              {index + 1}. {user.username} -{" "}
+              {user.totalAssets.toLocaleString("ko-KR", {
+                style: "currency",
+                currency: "KRW",
+              })}
             </li>
           );
         })}

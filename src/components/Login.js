@@ -18,7 +18,7 @@ function Login() {
 
         try {
             // Firestore에서 입력한 아이디로 이메일 검색
-            const usersRef = collection(db, 'users');
+            const usersRef = collection(db, 'userspm');
             const querySnapshot = await getDocs(usersRef);
 
             let email = null;
@@ -49,7 +49,7 @@ function Login() {
           <form onSubmit={handleLogin}>
               <input
                   type="text"
-                  placeholder="아이디"
+                  placeholder="학번"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
               />
